@@ -532,5 +532,5 @@ class Buss:
         "val3:Sök efter kön"
     ]
 
-buss = Buss()
+buss = Buss() 
 buss.run()
