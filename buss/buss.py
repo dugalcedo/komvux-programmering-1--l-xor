@@ -1,5 +1,12 @@
 from passenger import Passenger
 
+'''
+    validAge
+    Denna metod tar in en sträng och kontrollera att det är en giltigt ålder.
+    Först konverterar det strängen till ett heltal. 
+    Sedan kontrollerar det att heltalet är mellan 0 och 125.
+    Är det så returera metoden True, annars False.
+'''
 def validAge(str):
         if not str.isdigit():
             return False
@@ -8,6 +15,13 @@ def validAge(str):
             return False
         return True
 
+'''
+    refuseBlankInput
+    Denna metod initialerar en tom sträng "val" och ber användaren om en inmatning.
+    Om inmatningen är tom, ett meddelande skrivs ut.
+    Annars blir "val" inmatningen.
+    Val retureras.
+'''
 def refuseBlankInput(str):
     val = ""
     while val == "":
@@ -17,6 +31,14 @@ def refuseBlankInput(str):
             print("Du måste ange någonting.")
     return val
 
+'''
+    refuseInvalidInput
+    Denna medtod kombinerar de två förra metoderna.
+    Det håller på att be användaren om en inmatning.
+    Så länge inmatningen är tom ELLER en angiven "validator" funktion returera False ska metoden be om igen.
+    Validatorn ska vara en metod som tar in en sträng och returera en boolean om strängen är giltig.
+    Bussen använder denna metod en gång, för att få en giltig ålder.
+'''
 def refuseInvalidInput(str, validator):
     val = ""
     while (val == "") or (not validator(val)):
@@ -27,14 +49,30 @@ def refuseInvalidInput(str, validator):
     return val
 
 
+'''
+    Hur bussen struktureras
+        E-, C-, och A-betygsmetoder markeras. De kommer först.
+        Sedan kommer mina extra metoder.
+        Sedan några statiska variabler och metoder.
+'''
+
 class Buss:
 
     def __init__(self):
+        '''
+            När bussen initialeras, så initialeras även två variabler:
+            1. sittplatser, som ska representerar de fem sittplatserna på bussen.
+                - om en sittplats är tom, ska det vara None, annars en instans av Passagerare classen
+            2. stoppBegärt, som representerar om en passagerare har tryckt en "stoppknapp" på bussen
+                - det är 1 i 4 chans att en passagerare trycka knappet varje "hållplats"
+                - varje gång du öppna dörrarna på bussen är denna variabel sätts om till False
+        '''
         self.sittplatser = [None, None, None, None, None]
         self.stoppBegärt = False
         pass
 
     def run(self):
+        # Se på skrivMeny i "mina metoder"
         self.skrivMeny(self.huvudMeny, self.huvudSwitch)
 
     # E-betyg metoder
@@ -139,11 +177,29 @@ class Buss:
 
     # Mina metoder    
 
+
+    '''
+    skrivMeny
+    Detta är kanske bussens "viktigaste" metoden
+    Det kan ta in olika parametrar för att skriva ut olika menyer med olika funktioner
+    "meny" ska vara en array av strängar
+    "switch" ska vara en funktion som ta in en sträng och innehåller en match-case för att göra olika saker beroende på strängen
+    "kanGåTillbaka" är frivilligt, men om True ska menyn ha ett val för att gå tillbaka till huvudmenyn
+        3 typer av menysträngar
+            1. "mellanslag" - skapar en ny rad i menyn
+            2. "titel:_" - skapar en titel i menyn
+            3. "val_:" - skapar ett giltigt val i menyn
+                se statiska varabler nedan för exempel
+    '''
     def skrivMeny(self, meny, switch, kanGåTillbaka = False):
+        # "giltigaVal" ska senare inehålla alla de tecken som kan användas i swtichen
+        # alla menyerna ska ha åtminstone 0 som ett val, antingen för att avsluta eller gå tillbacka till huvudmenyn
         giltigaVal = "0"
         print("_____")
+
+        # "alternativ" är varje sträng i menyarrayen
+        # här hanteras alla de tre eventuella menysträngerna
         for alternativ in meny:
-            # print(f"ALTERNATIV --- {alternativ}")
             if alternativ == "mellanrum":
                 print("|")
                 continue
@@ -151,28 +207,41 @@ class Buss:
             if typ.startswith("val"):
                 val = typ.replace("val", "")
                 print(f"| {val} - {text}")
+                # Viktigt: "val" läggs till "giltigaVal" strängen
                 giltigaVal += val
                 continue
             if typ == "titel":
                     print(f"| --- {text} ---")
+
         print("|")
+
         if kanGåTillbaka:
             print("| 0 - Tillbaka till huvudmenyn")
         else:
             print("| 0 - Avsluta programmet")
         print("|-----")
+
+        # om en passagerare "tryckte knappen" ska "stopp begärt" visas i varje meny
         if self.stoppBegärt:
             print("| # STOPP BEGÄRT #")
             print("|-----")
+
+        # här hämtas användarens menyval
+        # while-loopen förhindra programmet från att fortsätta tills användaren anger ett giltigt val
         val = ""
         while (not val in giltigaVal) or (val == ""):
             val = ""
             val = input(f"| Ange en siffra: {val}")
             if (not val in giltigaVal) or (val == ""):
                 print("| ! Det var inte ett giltigt val. !")
+
+
         print("`````")
+        # nu användaren har angett ett giltigt val
+        # så anropas en "switch-funktion"
         switch(val)
 
+    # switch-funktion som förknippas med huvudmenyn
     def huvudSwitch(self, val):
         Buss.mellanrum()
         match val:
@@ -196,15 +265,24 @@ class Buss:
                 print("Hej då!")
                 Buss.mellanrum()
     
+    # skriver ut bussens statistik
     def statistics(self):
+        # statistiken ska inte skrivas ut om det inte finns passagerare
         if not any(self.sittplatser):
             print("Det finns inga passagerare.")
             self.tillbakaTillHuvudMeny()
             return
+        
+        # procent av sittplatser upptagna
         fullness = self.countPassengers() / 5 * 100
+        # genomsnittliga åldern
         avgAge = self.calc_average_age()
+        # sexStatistics returera en array. här destruktureras det.
         male, female, other = self.sexStatistics()
+        # samma med minMaxAge
         min, max = self.minMaxAge()
+
+        # skriv ut och gå tillbaka till huvudmenyn
         print(f"Bussen är {fullness}% full.")
         print(f"Passagerarna är {male}% manliga.")
         print(f"Passagerarna är {female}% kvinnliga.")
@@ -214,12 +292,18 @@ class Buss:
         print(f"Den genomsnittliga åldern är {avgAge}.")
         self.tillbakaTillHuvudMeny()
 
+    # kalkulera könstatistik
     def sexStatistics(self):
+        # initialera antal manliga, antal kvinnliga, och antal övriga till 0
         numMale = 0
         numFemale = 0
         numOther = 0
+
+        # för varje sittplats...
         for p in self.sittplatser:
+            # om sittplats har en passagerare...
             if p:
+                # öka det lämpliga värde
                 match p.sex:
                     case "m":
                         numMale += 1
@@ -227,77 +311,107 @@ class Buss:
                         numFemale += 1
                     case _:
                         numOther += 1
+
+        # hämta antal passagerare för att jämföra med
         numTotal = self.countPassengers()
         numMale = numMale / numTotal * 100
         numFemale = numFemale / numTotal * 100
         numOther = numOther / numTotal * 100
+        # returnera värde som kan lätt skrivas ut som procent
+        # denna array kan destruktureras senare
         return [numMale, numFemale, numOther]
 
+    # switchfunktion som förknippas med poke-menyn
     def pokeSwitch(self, val):
         match val:
             case "0":
                 self.tillbakaTillHuvudMeny()
             case _:
+                # hämta passagerare som sitter i sittplatsen
                 passenger = self.sittplatser[int(val)-1] 
+                # hämta poke-frasen och skriv ut, sedan gå tillbaka
                 fras = passenger.fras("poked")
                 print(f"{passenger.name} tänker: {fras}")
                 self.tillbakaTillHuvudMeny()
 
+    # switchfunktion som förknippas med släppmenyn
     def släppSwitch(self, val):
         match val:
             case "0":
                 self.tillbakaTillHuvudMeny()
+
             case "1": # Släpp av alla
                 if not any(self.sittplatser):
                     print("Inga vill gå av.")
+                # för varje sittplats...
                 for p in self.sittplatser:
+                    # om sittplatsen är upptagen OCH passageraren där vill gå av...
                     if p and p.villStigaAv:
                         print(f"{p.name} gick av bussen.")
                         p.leaveBus(self)
+                # sätta om "stoppskylten" och gå tillbaka till huvudmenyn
                 self.stoppBegärt = False
                 self.tillbakaTillHuvudMeny()
+
             case "2": # Släng ut alla
+                # för varje sittplats...
                 for p in self.sittplatser:
+                    # om sittplatsen är upptagen...
                     if p:
                         print(f"{p.name} var tvungen att gå av bussen.")
                         p.leaveBus(self)
+                # sätta om "stoppskylten" och gå tillbaka till huvudmenyn
                 self.stoppBegärt = False
                 self.tillbakaTillHuvudMeny()
+
             case "3": # Släpp viss
+                # kapa en passageraremeny och skriv ut det
+                # koppla släppVissSwitch till det
                 meny = self.skapaPassegerareMeny()
                 self.skrivMeny(meny, self.släppVissSwitch, True)
 
+    # släppVissSwitch för att släpp av / släng ut en viss passagerare
     def släppVissSwitch(self, val):
         match val:
             case "0":
                 self.tillbakaTillHuvudMeny()
             case _:
+                # hämta passagerare och få hen att lämna bussen sen gå tillbaka till huvudmeny
                 passenger = self.sittplatser[int(val)-1]
                 passenger.leaveBus(self)
                 ord = "gick av" if passenger.villStigaAv else "var tvungen att gå av"
                 print(f"{passenger.name} {ord} bussen.")
                 self.tillbakaTillHuvudMeny()
 
+    # funktion för att gå tillbaka till huvudmenyn
     def tillbakaTillHuvudMeny(self, skaTryckEnter = True):
         buss.mellanrum()
+        # denna funktion har alternativet att gå tillbaka till huvudmenyn utan att utmana användaren att tryck enter
+        # i slutändan använde jag inte detta
         if skaTryckEnter:
             input("Tryck enter/return för att fortsätta...")
             buss.mellanrum()
         self.skrivMeny(self.huvudMeny, self.huvudSwitch)
 
+    # funktion för att "köra bussen till nästa hållplats"
     def drive(self):
+        # "stoppskylten" sätts om varje körning
         self.stoppBegärt = False
+        # för varje sittplats...
         for passenger in self.sittplatser:
+            # om sittplatsen är upptagen...
             if passenger:
                 passenger.åk()
                 if passenger.villStigaAv:
                     self.stoppBegärt = True
+                # om passageraren inte släpptes av när hen ville, en "argfras" ska srivas ut
                 if passenger.arg:
                     argFras = passenger.fras("arg")
                     print(f"{passenger.name} säger: {argFras}")
         print("Bussen har kommit fram till den nätsa hållplatsen.")
         self.tillbakaTillHuvudMeny()
 
+    # skapar en menyarray av de aktuella passagerarna
     def skapaPassegerareMeny(self):
         meny = []
         for i, p in enumerate(self.sittplatser):
@@ -305,6 +419,7 @@ class Buss:
                 meny.append(f"val{i+1}:{p.name}")
         return meny
     
+    # returera antal sittplatser som är "truthy" (har en passagerare)
     def countPassengers(self):
         numPassengers = 0
         for p in self.sittplatser:
@@ -312,6 +427,8 @@ class Buss:
                 numPassengers += 1
         return numPassengers
     
+    # switchfunktionen som förknippas med sortmenyn
+    # här använder jag "key=" för att sortera efter variabler på objekt
     def sortSwitch(self, val):
         match val:
             case "0": # tillbaka till huvudmeny
@@ -321,10 +438,14 @@ class Buss:
                 self.sittplatser.sort(key=Buss.getPassageraresÅlder)
             case "2": # efter namn
                 self.sittplatser.sort(key=Buss.getPassageraresNamn)
+        # berätta för användaren hur hen kan se på den nya sorteringen
         print("Passagerarna sorterades. Välja huvudmenyval 5 för att bekrafta.")
         self.tillbakaTillHuvudMeny()
 
+    # switchfunktionen för sökmenyn
     def sökSwitch(self, val):
+        # initialera en array för de relevanta passagerarna
+        # beroende på användarens val ska denna array inehålla passagerare som matchar en inmatning
         resultat = []
         match val:
             case "0": # tillbaka till huvudmeny
@@ -345,8 +466,10 @@ class Buss:
                 for p in self.sittplatser:
                     if p and p.sex == kön:
                         resultat.append(p)
+        # om det finns bara en träff så jag vill att det skriva "träff" annars "träffar"
         ord = "träff" if len(resultat) == 1 else "träffar"
         print(f"{len(resultat)} {ord} hittades.")
+        # skriv ut varje träff
         for r in resultat:
             Buss.mellanrum()
             print(f"- Namn: {r.name}")
@@ -354,10 +477,11 @@ class Buss:
             print(f"- Kön: {r.sex}")
         self.tillbakaTillHuvudMeny()
 
-
+    # för att skriva ut tomma rad
     @staticmethod
     def mellanrum(): print("")
 
+    # funktioner för att sortera efter namn och ålder. om sittplatsen är tom, returera något som ska få sittplatsen att sorteras sist 
     @staticmethod
     def getPassageraresNamn(passagerare):
         return passagerare.name if passagerare else "zzzzz"
@@ -365,6 +489,9 @@ class Buss:
     @staticmethod
     def getPassageraresÅlder(passagerare):
         return passagerare.age if passagerare else 126
+
+    # nedan finns de menyarrayerna som ska behandlas av funktionen skrivMeny
+    # se "skrivMeny" för mer information
 
     huvudMeny = [
             "titel:HUVUD MENY",
@@ -398,7 +525,7 @@ class Buss:
     ]
 
     sökMeny = [
-        "title:SÖKMENY",
+        "titel:SÖKMENY",
         "mellanrum",
         "val1:Sök efter namn",
         "val2:Sök efter ålder",
