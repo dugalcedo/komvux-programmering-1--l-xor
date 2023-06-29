@@ -1,3 +1,22 @@
+'''
+    Hur struktureras programmet
+
+    - den Passenger classen importeras från en annan fil
+    - efter det kommer några globala funktioner
+    - sedan Buss classen
+    - inuti Buss classen kommer först betygsmetoderna
+    - sen "mina metoder"
+    - sen några statiska variabler och metoder
+
+    - sen en ny instans av Buss skapas och "run" metoden anropas
+
+    > python3 buss.py och följ menyerna
+    :)
+
+    förlåt i förhand för dåligt svenska
+    jag har studerat svenska i två år bara
+'''
+
 from passenger import Passenger
 
 '''
@@ -78,76 +97,90 @@ class Buss:
     # E-betyg metoder
 
     def add_passenger(self):
+        # om alla sittplatserna är upptagna
         if all(self.sittplatser):
             print("Det finns inga lediga sittplatser.")
             self.tillbakaTillHuvudMeny()
             return
+
+        # de här funktionerna förklaras ovanför
         name, age, sex = "","",""
         name = refuseBlankInput("Namn")
         age = refuseInvalidInput("Ålder", validAge)
         sex = refuseBlankInput("Kön (m/f/<något annat>)")
+
+        # skapa en ny instans av Passenger
         passenger = Passenger(name, age, sex)
+        # anropa passagerarens "choose seat" metod
+        # se passenger.py för mer information
         passenger.chooseSeat(self)
         print(f"{passenger.name} steg på bussen.")
         print(f"{passenger.name} satt på sittplats {passenger.bussIdx+1}.")
         self.tillbakaTillHuvudMeny()
 
+    # skriv ut alla sittplatser
     def print_bus(self):
         print("BUSS")
+        # för varje sittplats... (enumerate så att jag har tillgång till index)
         for i, seat in enumerate(self.sittplatser):
-            print(f"- Sittplats {i+1}")
-            if seat:
+            print(f"- Sittplats {i+1}") # det här är därför jag behöver index
+            if seat: # om sittplatsen är en passagerare
                 print(f"-- Namn: {seat.name}")
                 print(f"-- Ålder: {seat.age}")
                 print(f"-- Kön: {seat.sex}")
-            else:
+            else: # om sittplatsen är None (tom)
                 print("-- Tom sittplats")
             Buss.mellanrum()
         self.tillbakaTillHuvudMeny()
 
     def calc_total_age(self):
         total = 0
-        for p in self.sittplatser:
-            if p:
-                total += p.age
+        for p in self.sittplatser: # för varje sittplats...
+            if p: # om det är en passagerare...
+                total += p.age # öka summan
         return total
     
     # C-betyg metoder
 
     def calc_average_age(self):
+        # beräkna passagerarna
         numPassengers = self.countPassengers()
+        # hämta summan av ålderna
         totalAge = self.calc_total_age()
+        # returera medelvärdet
         return totalAge / numPassengers
     
     def minMaxAge(self):
         minAge = 125
         maxAge = 0
-        for p in self.sittplatser:
-            if p:
-                if p.age < minAge:
+        for p in self.sittplatser: # för varje sittplats...
+            if p: # om det är en passagerare...
+                if p.age < minAge: # om hen är yngre än minAge...
                     minAge = p.age
-                if p.age > maxAge:
+                if p.age > maxAge: # om hen är äldre än maxAge...
                     maxAge = p.age
-        return [minAge, maxAge]
+        return [minAge, maxAge] # denna array kan destruktureras senare
     
     def find(self):
         # jag bestämde mig att göra så att "find_age" blir "find" i stället
         # så att användaren kan söka efter andra kategorier också 
-        if not any(self.sittplatser):
+        if not any(self.sittplatser): # om alla sittplatserna är None (det betyder att det finns inga passagerare)
             print("Det finns inga passagerare att söka.")
             self.tillbakaTillHuvudMeny()
             return
+        # se skrivMeny för mer information
         self.skrivMeny(self.sökMeny, self.sökSwitch, True)
 
     def sort(self):
-        if not any(self.sittplatser):
+        if not any(self.sittplatser): # om alla sittplatserna är None
             print("Det finns inga passagerare att sortera.")
             self.tillbakaTillHuvudMeny()
             return
-        if self.countPassengers() < 2:
+        if self.countPassengers() < 2: # om det inte finns i minst TVÅ passagerare, då finns det ingen anledning att sortera
             print("Det behövs i minst 2 passagerare för att sortera.")
             self.tillbakaTillHuvudMeny()
             return
+        # se skrivMeny för mer information
         self.skrivMeny(self.sortMeny, self.sortSwitch, True)
 
     # A-betyg metoder
@@ -157,19 +190,22 @@ class Buss:
         pass
         
         Jag bestämde mig att kombinera detta begrepp med print_bus()
-        Programmet kan göra detta i alla fall
+        Programmet KAN göra detta i alla fall
+        Det göras när användaren välja "statistik" på huvudmenyn
     """
 
     def poke(self):
-        if not any(self.sittplatser):
+        if not any(self.sittplatser): # om det inte finns några passagerare
             print("Det finns ingen att peta på.")
             self.tillbakaTillHuvudMeny()
             return
+        
+        # se skapaPassagerareMeny för mer information
         meny = self.skapaPassegerareMeny()
         self.skrivMeny(meny, self.pokeSwitch, True)
 
     def getting_off(self):
-        if not any(self.sittplatser):
+        if not any(self.sittplatser): # om det inte finns några passagerare..
             print("Det finns inga passagerare.")
             self.tillbakaTillHuvudMeny()
             return
